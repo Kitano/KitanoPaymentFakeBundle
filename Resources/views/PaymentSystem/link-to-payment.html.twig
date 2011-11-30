@@ -1,0 +1,13 @@
+{% autoescape false %}
+<form action="{{ url('kitano_payment_fake_payment') }}" method="post">
+
+    <input type="hidden" name="date" value="{{ date }}">
+    <input type="hidden" name="montant" value="{{ montant }}">
+    <input type="hidden" name="reference" value="{{ reference }}">
+    <input type="hidden" name="url_retour" value="">
+    <input type="hidden" name="url_retour_ok" value="">
+    <input type="hidden" name="url_retour_err" value="">
+
+    <input type="submit" value="Pay" />
+</form>
+{% endautoescape %}
