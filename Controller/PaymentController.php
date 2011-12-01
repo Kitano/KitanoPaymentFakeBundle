@@ -10,14 +10,26 @@ class PaymentController extends Controller
 {
     public function paymentRequestAction()
     {
-        $postData = $this->getRequest()->request;
-        $request = new Request(array(), array(
-            'reference' => $postData->get('reference', null),
-        ));
+        $request = clone $this->getRequest();
+        $mode = strtolower($request->request->get('mode', ''));
+        switch ($mode) {
+            case 'accept':
+                $request->request->set('code', 1);
+                $redirectUrl = $request->request->get('return_url_ok');
+                break;
 
+            case 'refuse':
+                $request->request->set('code', 0);
+                $redirectUrl = $request->request->get('return_url_err');
+                break;
+
+            default:
+                $request->request->set('code', -1);
+                $redirectUrl = $request->request->get('return_url');
+        }
         $this->getPaymentSystem()->handlePaymentNotification($request);
 
-        return $this->redirect($postData->get('url_retour_ok'));
+        return $this->redirect($redirectUrl);
     }
 
     public function captureRequestAction()

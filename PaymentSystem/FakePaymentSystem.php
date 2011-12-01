@@ -56,9 +56,9 @@ class FakePaymentSystem implements CreditCardInterface
     public function renderLinkToPayment(Transaction $transaction)
     {
         return $this->templating->render('KitanoPaymentFakeBundle:PaymentSystem:link-to-payment.html.twig', array(
-            'date' => $this->formatDate($transaction->getDate()),
-            'reference' => $transaction->getOrderId(),
-            'montant' => $this->formatAmount($transaction->getAmount(), $transaction->getCurrency()),
+            'date'    => $this->formatDate($transaction->getDate()),
+            'orderId' => $transaction->getOrderId(),
+            'amount'  => $this->formatAmount($transaction->getAmount(), $transaction->getCurrency()),
         ));
     }
 
@@ -68,9 +68,25 @@ class FakePaymentSystem implements CreditCardInterface
     public function handlePaymentNotification(Request $request)
     {
         $requestData = $request->request;
-        $transaction = $this->transactionRepository->findByOrderId($requestData->get('reference', null));
+        $transaction = $this->transactionRepository->findByOrderId($requestData->get('orderId', null));
 
-        $transaction->setState(AuthorizationTransaction::STATE_APPROVED);
+        switch((int) $requestData->get('code', 999)) {
+            case 1:
+                $transaction->setState(AuthorizationTransaction::STATE_APPROVED);
+                break;
+
+            case 0:
+                $transaction->setState(AuthorizationTransaction::STATE_REFUSED);
+                break;
+
+            case -1:
+                $transaction->setState(AuthorizationTransaction::STATE_SERVER_ERROR);
+                break;
+
+            default:
+                $transaction->setState(AuthorizationTransaction::STATE_SERVER_ERROR);
+        }
+
         $transaction->setExtraData($requestData->all());
         $this->transactionRepository->save($transaction);
 
@@ -97,7 +113,7 @@ class FakePaymentSystem implements CreditCardInterface
         $transaction->setBaseTransaction($this->transactionRepository->findByOrderId($transaction->getOrderId()));
         $captureList = $this->transactionRepository->findCaptureBy(array(
             'orderId' => $transaction->getOrderId(),
-            'state' => CaptureTransaction::STATE_COMPLETE,
+            'state' => CaptureTransaction::STATE_APPROVED,
         ));
 
         $captureAmountCumul = 0;
@@ -113,11 +129,11 @@ class FakePaymentSystem implements CreditCardInterface
 
         // Data
         $data = array(
-            'montant'              => $this->formatAmount($transaction->getBaseTransaction()->getAmount(), $transaction->getCurrency()),
-            'montant_a_capturer'   => $this->formatAmount($transaction->getAmount(), $transaction->getCurrency()),
-            'montant_deja_capture' => $this->formatAmount($captureAmountCumul, $transaction->getCurrency()), // TODO
-            'montant_restant'      => $this->formatAmount($remainingAmount, $transaction->getCurrency()),
-            'reference'            => $this->formatAmount($transaction->getTransactionId(), $transaction->getCurrency()),
+            'amount'            => $this->formatAmount($transaction->getBaseTransaction()->getAmount(), $transaction->getCurrency()),
+            'capture_amount'    => $this->formatAmount($transaction->getAmount(), $transaction->getCurrency()),
+            'captured_amount'   => $this->formatAmount($captureAmountCumul, $transaction->getCurrency()), // TODO
+            'remaining_amount'  => $this->formatAmount($remainingAmount, $transaction->getCurrency()),
+            'orderId'           => $this->formatAmount($transaction->getTransactionId(), $transaction->getCurrency()),
         );
 
         curl_setopt($ch, CURLOPT_POST, count($data));
@@ -127,8 +143,6 @@ class FakePaymentSystem implements CreditCardInterface
         $response = curl_exec($ch);
         curl_close($ch);
 
-        // TODO: parse $reponse and populate Transaction
-        // $paymentResponse = $this->parseCaptureResponse();
         $paymentResponse = explode('=', $response);
         if ($paymentResponse[1] == 1) {
             $transaction->setState(CaptureTransaction::STATE_APPROVED);
