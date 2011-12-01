@@ -87,6 +87,7 @@ class FakePaymentSystem implements CreditCardInterface
                 $transaction->setState(AuthorizationTransaction::STATE_SERVER_ERROR);
         }
 
+        $transaction->setSuccess(true);
         $transaction->setExtraData($requestData->all());
         $this->transactionRepository->save($transaction);
 

@@ -10,24 +10,26 @@ class PaymentController extends Controller
 {
     public function paymentRequestAction()
     {
-        $request = clone $this->getRequest();
-        $mode = strtolower($request->request->get('mode', ''));
+        $request = $this->getRequest()->request;
+        $mode = strtolower($request->get('mode', ''));
+        $data = $request->all();
         switch ($mode) {
             case 'accept':
-                $request->request->set('code', 1);
-                $redirectUrl = $request->request->get('return_url_ok');
+                $data['code'] = 1;
+                $redirectUrl = $request->get('return_url_ok');
                 break;
 
             case 'refuse':
-                $request->request->set('code', 0);
-                $redirectUrl = $request->request->get('return_url_err');
+                $data['code'] = 0;
+                $redirectUrl = $request->get('return_url_err');
                 break;
 
             default:
-                $request->request->set('code', -1);
-                $redirectUrl = $request->request->get('return_url');
+                $data['code'] = -1;
+                $redirectUrl = $request->get('return_url_err');
         }
-        $this->getPaymentSystem()->handlePaymentNotification($request);
+
+        $this->sendPaymentNotification($data, $request->get('notification_url'));
 
         return $this->redirect($redirectUrl);
     }
@@ -37,6 +39,20 @@ class PaymentController extends Controller
         $postData = $this->getRequest()->request;
 
         return new Response('code=1');
+    }
+
+    private function sendPaymentNotification(array $data, $url)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_POST, count($data));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+
+        // Get the response and close the channel.
+        $response = curl_exec($ch);
+        curl_close($ch);
     }
 
     /**
