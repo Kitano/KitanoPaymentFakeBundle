@@ -122,11 +122,7 @@ class FakePaymentSystem implements CreditCardInterface
             $captureAmountCumul += $capture->getAmount();
         }
 
-        $remainingAmount = (float) ($transaction->getBaseTransaction()->getAmount() - $captureAmountCumul);
-        if ($remainingAmount <= 0) {
-            // TODO: Custom Exception
-            throw new \Exception();
-        }
+        $remainingAmount = (float) ($transaction->getBaseTransaction()->getAmount() - $captureAmountCumul - $transaction->getAmount());
 
         // Data
         $data = array(
