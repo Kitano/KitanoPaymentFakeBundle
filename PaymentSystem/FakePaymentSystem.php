@@ -93,6 +93,8 @@ class FakePaymentSystem implements CreditCardInterface
 
         $event = new PaymentNotificationEvent($transaction);
         $this->dispatcher->dispatch(KitanoPaymentEvents::PAYMENT_NOTIFICATION, $event);
+
+        return new Response('OK');
     }
 
     /**
