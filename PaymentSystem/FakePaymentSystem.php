@@ -68,7 +68,7 @@ class FakePaymentSystem implements CreditCardInterface
     public function handlePaymentNotification(Request $request)
     {
         $requestData = $request->request;
-        $transaction = $this->transactionRepository->findByOrderId($requestData->get('orderId', null));
+        $transaction = $this->transactionRepository->findAuthorizationByOrderId($requestData->get('orderId', null));
 
         switch((int) $requestData->get('code', 999)) {
             case 1:
@@ -113,8 +113,8 @@ class FakePaymentSystem implements CreditCardInterface
         // Accept any server(peer) certificate
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
-        $transaction->setBaseTransaction($this->transactionRepository->findByOrderId($transaction->getOrderId()));
-        $captureList = $this->transactionRepository->findCaptureBy(array(
+        $transaction->setBaseTransaction($this->transactionRepository->findAuthorizationByOrderId($transaction->getOrderId()));
+        $captureList = $this->transactionRepository->findCapturesBy(array(
             'orderId' => $transaction->getOrderId(),
             'state' => CaptureTransaction::STATE_APPROVED,
         ));
