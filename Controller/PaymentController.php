@@ -1,6 +1,6 @@
 <?php
 
-namespace Kitano\Bundle\PaymentFakeBundle\Controller;
+namespace Kitano\PaymentFakeBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -56,7 +56,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * @return \Kitano\Bundle\PaymentBundle\PaymentSystem\CreditCardInterface
+     * @return \Kitano\PaymentBundle\PaymentSystem\CreditCardInterface
      */
     public function getPaymentSystem()
     {

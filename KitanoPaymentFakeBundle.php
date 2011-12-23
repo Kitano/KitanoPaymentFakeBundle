@@ -1,6 +1,6 @@
 <?php
 
-namespace Kitano\Bundle\PaymentFakeBundle;
+namespace Kitano\PaymentFakeBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
