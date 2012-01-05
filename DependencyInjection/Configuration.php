@@ -46,6 +46,9 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('config')
                     ->children()
                         ->scalarNode('base_url')->isRequired()->cannotBeEmpty()->end()
+                        ->scalarNode('return_url_ok')->isRequired()->cannotBeEmpty()->end()
+                        ->scalarNode('return_url_err')->isRequired()->cannotBeEmpty()->end()
+                        ->scalarNode('notification_url')->defaultValue(null)->end()
                     ->end()
                 ->end()
             ->end();

@@ -33,16 +33,34 @@ class FakePaymentSystem implements CreditCardInterface
     /* @var string */
     protected $baseUrl;
 
+    /* @var string */
+    protected $notificationUrl = null;
+    /* @var string */
+    protected $returnUrlOk = null;
+    /* @var string */
+    protected $returnUrlErr = null;
 
-    public function __construct(TransactionRepositoryInterface $transactionRepository,
-                                EventDispatcherInterface $dispatcher,
-                                EngineInterface $templating,
-                                RouterInterface $router)
+
+    public function __construct(
+        TransactionRepositoryInterface $transactionRepository,
+        EventDispatcherInterface $dispatcher,
+        EngineInterface $templating,
+        RouterInterface $router,
+        $notificationUrl,
+        $returnUrlOk,
+        $returnUrlErr
+    )
     {
         $this->transactionRepository = $transactionRepository;
         $this->dispatcher = $dispatcher;
         $this->templating = $templating;
         $this->router = $router;
+        if (!$notificationUrl) {
+            $notificationUrl = $router->generate("kitano_payment_payment_notification");
+        }
+        $this->notificationUrl = $notificationUrl;
+        $this->returnUrlOk = $returnUrlOk;
+        $this->returnUrlErr = $returnUrlErr;
     }
 
     public function authorizeAndCapture(Transaction $transaction)
@@ -58,7 +76,11 @@ class FakePaymentSystem implements CreditCardInterface
         return $this->templating->render('KitanoPaymentFakeBundle:PaymentSystem:link-to-payment.html.twig', array(
             'date'    => $this->formatDate($transaction->getDate()),
             'orderId' => $transaction->getOrderId(),
+            'transactionId' => $transaction->getId(),
             'amount'  => $this->formatAmount($transaction->getAmount(), $transaction->getCurrency()),
+            'notificationUrl' => $this->notificationUrl,
+            'returnUrlOk' => $this->returnUrlOk,
+            'returnUrlErr' => $this->returnUrlErr,
         ));
     }
 
@@ -68,7 +90,7 @@ class FakePaymentSystem implements CreditCardInterface
     public function handlePaymentNotification(Request $request)
     {
         $requestData = $request->request;
-        $transaction = $this->transactionRepository->findAuthorizationByOrderId($requestData->get('orderId', null));
+        $transaction = $this->transactionRepository->find($requestData->get('transactionId', null));
 
         switch((int) $requestData->get('code', 999)) {
             case 1:

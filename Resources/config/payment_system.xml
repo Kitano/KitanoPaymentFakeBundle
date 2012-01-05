@@ -14,6 +14,9 @@
             <argument type="service" id="event_dispatcher" />
             <argument type="service" id="templating" />
             <argument type="service" id="router" />
+            <argument>%kitano_payment_fake.config.notification_url%</argument>
+            <argument>%kitano_payment_fake.config.return_url_ok%</argument>
+            <argument>%kitano_payment_fake.config.return_url_err%</argument>
             <call method="setBaseUrl">
                 <argument>%kitano_payment_fake.config.base_url%</argument>
             </call>
