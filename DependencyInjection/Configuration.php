@@ -24,33 +24,9 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('kitano_payment_fake');
 
-        $this->addConfigSection($rootNode);
+//        $this->addConfigSection($rootNode);
 
         return $treeBuilder;
     }
 
-    /**
-     * Parses the kitano_payment_fake config section
-     * Example for yaml driver:
-     * kitano_payment_fake:
-     *     config:
-     *         base_url:
-     *
-     * @param ArrayNodeDefinition $node
-     * @return void
-     */
-    private function addConfigSection(ArrayNodeDefinition $node)
-    {
-        $node
-            ->children()
-                ->arrayNode('config')
-                    ->children()
-                        ->scalarNode('base_url')->isRequired()->cannotBeEmpty()->end()
-                        ->scalarNode('return_url_ok')->isRequired()->cannotBeEmpty()->end()
-                        ->scalarNode('return_url_err')->isRequired()->cannotBeEmpty()->end()
-                        ->scalarNode('notification_url')->defaultValue(null)->end()
-                    ->end()
-                ->end()
-            ->end();
-    }
 }

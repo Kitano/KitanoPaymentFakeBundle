@@ -10,6 +10,7 @@ use Kitano\PaymentBundle\KitanoPaymentEvents;
 use Kitano\PaymentBundle\Event\PaymentNotificationEvent;
 use Kitano\PaymentBundle\Event\PaymentCaptureEvent;
 use Kitano\PaymentBundle\Repository\TransactionRepositoryInterface;
+use Kitano\PaymentBundle\PaymentSystem\HandlePaymentResponse;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,9 +32,6 @@ class FakePaymentSystem implements CreditCardInterface
 
     /* @var TransactionRepositoryInterface */
     protected $transactionRepository;
-
-    /* @var string */
-    protected $baseUrl;
 
     /* @var string */
     protected $notificationUrl = null;
@@ -118,7 +116,8 @@ class FakePaymentSystem implements CreditCardInterface
         $event = new PaymentNotificationEvent($transaction);
         $this->dispatcher->dispatch(KitanoPaymentEvents::PAYMENT_NOTIFICATION, $event);
 
-        return new Response('OK');
+        $response = new Response("OK");
+        return new HandlePaymentResponse($transaction, $response);
     }
 
     /**
@@ -126,7 +125,8 @@ class FakePaymentSystem implements CreditCardInterface
      */
     public function handleBackToShop(Request $request)
     {
-        return new RedirectResponse($this->externalBackToShop, "302");
+        $response = new RedirectResponse($this->externalBackToShop, "302");
+        return new HandlePaymentResponse(null, $response);
     }
 
     /**
@@ -218,19 +218,4 @@ class FakePaymentSystem implements CreditCardInterface
         return $date->format('d/m/Y:H:i:s');
     }
 
-    /**
-     * @param string $baseUrl
-     */
-    public function setBaseUrl($baseUrl)
-    {
-        $this->baseUrl = $baseUrl;
-    }
-
-    /**
-     * @return string
-     */
-    public function getBaseUrl()
-    {
-        return $this->baseUrl;
-    }
 }

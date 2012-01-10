@@ -17,9 +17,6 @@
             <argument>%kitano_payment.config.notification_url%</argument>
             <argument>%kitano_payment.config.internal_back_to_shop_url%</argument>
             <argument>%kitano_payment.config.external_back_to_shop_url%</argument>
-            <call method="setBaseUrl">
-                <argument>%kitano_payment_fake.config.base_url%</argument>
-            </call>
         </service>
     </services>
 

@@ -33,10 +33,6 @@ class KitanoPaymentFakeExtension extends Extension
         foreach (array('payment_system') as $basename) {
             $loader->load(sprintf('%s.xml', $basename));
         }
-
-        $this->remapParametersNamespaces($config['config'], $container, array(
-            ''    => 'kitano_payment_fake.config.%s',
-        ));
     }
 
     /**
