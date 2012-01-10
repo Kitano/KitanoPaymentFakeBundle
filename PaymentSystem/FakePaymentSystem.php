@@ -9,12 +9,14 @@ use Kitano\PaymentBundle\Model\CaptureTransaction;
 use Kitano\PaymentBundle\KitanoPaymentEvents;
 use Kitano\PaymentBundle\Event\PaymentNotificationEvent;
 use Kitano\PaymentBundle\Event\PaymentCaptureEvent;
+use Kitano\PaymentBundle\Repository\TransactionRepositoryInterface;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Templating\EngineInterface;
-use Kitano\PaymentBundle\Repository\TransactionRepositoryInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class FakePaymentSystem implements CreditCardInterface
 {
@@ -36,9 +38,9 @@ class FakePaymentSystem implements CreditCardInterface
     /* @var string */
     protected $notificationUrl = null;
     /* @var string */
-    protected $returnUrlOk = null;
+    protected $externalBackToShop = null;
     /* @var string */
-    protected $returnUrlErr = null;
+    protected $internalBackToShop = null;
 
 
     public function __construct(
@@ -47,8 +49,8 @@ class FakePaymentSystem implements CreditCardInterface
         EngineInterface $templating,
         RouterInterface $router,
         $notificationUrl,
-        $returnUrlOk,
-        $returnUrlErr
+        $internalBackToShop,
+        $externalBackToShop
     )
     {
         $this->transactionRepository = $transactionRepository;
@@ -59,8 +61,8 @@ class FakePaymentSystem implements CreditCardInterface
             $notificationUrl = $router->generate("kitano_payment_payment_notification");
         }
         $this->notificationUrl = $notificationUrl;
-        $this->returnUrlOk = $returnUrlOk;
-        $this->returnUrlErr = $returnUrlErr;
+        $this->internalBackToShop = $internalBackToShop;
+        $this->externalBackToShop = $externalBackToShop;
     }
 
     public function authorizeAndCapture(Transaction $transaction)
@@ -74,13 +76,13 @@ class FakePaymentSystem implements CreditCardInterface
     public function renderLinkToPayment(Transaction $transaction)
     {
         return $this->templating->render('KitanoPaymentFakeBundle:PaymentSystem:link-to-payment.html.twig', array(
-            'date'    => $this->formatDate($transaction->getDate()),
+            'date'    => $this->formatDate($transaction->getStateDate()),
             'orderId' => $transaction->getOrderId(),
             'transactionId' => $transaction->getId(),
             'amount'  => $this->formatAmount($transaction->getAmount(), $transaction->getCurrency()),
             'notificationUrl' => $this->notificationUrl,
-            'returnUrlOk' => $this->returnUrlOk,
-            'returnUrlErr' => $this->returnUrlErr,
+            'internalBackToShop' => $this->internalBackToShop,
+            'externalBackToShop' => $this->externalBackToShop
         ));
     }
 
@@ -117,6 +119,14 @@ class FakePaymentSystem implements CreditCardInterface
         $this->dispatcher->dispatch(KitanoPaymentEvents::PAYMENT_NOTIFICATION, $event);
 
         return new Response('OK');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function handleBackToShop(Request $request)
+    {
+        return new RedirectResponse($this->externalBackToShop, "302");
     }
 
     /**

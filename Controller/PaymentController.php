@@ -16,17 +16,17 @@ class PaymentController extends Controller
         switch ($mode) {
             case 'accept':
                 $data['code'] = 1;
-                $redirectUrl = $request->get('return_url_ok');
+                $redirectUrl = $request->get('internal_back_to_shop');
                 break;
 
             case 'refuse':
                 $data['code'] = 0;
-                $redirectUrl = $request->get('return_url_err');
+                $redirectUrl = $request->get('internal_back_to_shop');
                 break;
 
             default:
                 $data['code'] = -1;
-                $redirectUrl = $request->get('return_url_err');
+                $redirectUrl = $request->get('internal_back_to_shop');
         }
 
         $this->sendPaymentNotification($data, $request->get('notification_url'));
@@ -55,12 +55,5 @@ class PaymentController extends Controller
         curl_close($ch);
     }
 
-    /**
-     * @return \Kitano\PaymentBundle\PaymentSystem\CreditCardInterface
-     */
-    public function getPaymentSystem()
-    {
-        return $this->get('kitano_payment_fake.payment_system.fake');
-    }
 }
 

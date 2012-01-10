@@ -5,18 +5,18 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <parameters>
-        <parameter key="kitano_payment_fake.payment_system.fake.class">Kitano\PaymentFakeBundle\PaymentSystem\FakePaymentSystem</parameter>
+        <parameter key="kitano_payment_fake.payment_system.class">Kitano\PaymentFakeBundle\PaymentSystem\FakePaymentSystem</parameter>
     </parameters>
 
     <services>
-        <service id="kitano_payment_fake.payment_system.fake" class="%kitano_payment_fake.payment_system.fake.class%">
+        <service id="kitano_payment_fake.payment_system" class="%kitano_payment_fake.payment_system.class%">
             <argument type="service" id="kitano_payment.repository.transaction" />
             <argument type="service" id="event_dispatcher" />
             <argument type="service" id="templating" />
             <argument type="service" id="router" />
-            <argument>%kitano_payment_fake.config.notification_url%</argument>
-            <argument>%kitano_payment_fake.config.return_url_ok%</argument>
-            <argument>%kitano_payment_fake.config.return_url_err%</argument>
+            <argument>%kitano_payment.config.notification_url%</argument>
+            <argument>%kitano_payment.config.internal_back_to_shop_url%</argument>
+            <argument>%kitano_payment.config.external_back_to_shop_url%</argument>
             <call method="setBaseUrl">
                 <argument>%kitano_payment_fake.config.base_url%</argument>
             </call>
