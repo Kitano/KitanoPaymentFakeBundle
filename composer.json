@@ -1,0 +1,27 @@
+{
+    "name": "kitano/payment-fake-bundle",
+    "description": "Fake payment system driver for kitano/payment-bundle. Designed for tests",
+    "keywords": ["payment"],
+    "homepage": "http://github.com/Kitano/KitanoPaymentFakeBundle",
+    "type": "symfony-bundle",
+    "license": "BSD",
+    "authors": [
+        {
+            "name": "Philippe Levan",
+            "email": "philippe.levan@kitpages.fr",
+            "homepage": "http://www.kitpages.fr"
+        },
+        {
+            "name": "Benjamin Dulau",
+            "email": "benjamin.dulau@anonymation.com",
+            "homepage": "http://www.anonymation.com"
+        }
+    ],
+    "require": {
+        "kitano/payment-bundle": "master-dev"
+    },
+    "autoload": {
+        "psr-0": { "Kitano\\PaymentFakeBundle": "" }
+    },
+    "target-dir": "Kitano/PaymentFakeBundle"
+}
