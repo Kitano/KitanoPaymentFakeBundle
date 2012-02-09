@@ -3,9 +3,9 @@
 namespace Kitano\PaymentFakeBundle\PaymentSystem;
 
 use Kitano\PaymentBundle\PaymentSystem\CreditCardInterface;
-use Kitano\PaymentBundle\Model\Transaction;
-use Kitano\PaymentBundle\Model\AuthorizationTransaction;
-use Kitano\PaymentBundle\Model\CaptureTransaction;
+use Kitano\PaymentBundle\Entity\Transaction;
+use Kitano\PaymentBundle\Entity\AuthorizationTransaction;
+use Kitano\PaymentBundle\Entity\CaptureTransaction;
 use Kitano\PaymentBundle\KitanoPaymentEvents;
 use Kitano\PaymentBundle\Event\PaymentNotificationEvent;
 use Kitano\PaymentBundle\Event\PaymentCaptureEvent;
