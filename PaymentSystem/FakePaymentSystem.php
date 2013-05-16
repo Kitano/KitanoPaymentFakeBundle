@@ -3,15 +3,16 @@
 namespace Kitano\PaymentFakeBundle\PaymentSystem;
 
 use Kitano\PaymentBundle\PaymentSystem\CreditCardInterface;
-use Kitano\PaymentBundle\Model\Transaction;
-use Kitano\PaymentBundle\Model\AuthorizationTransaction;
-use Kitano\PaymentBundle\Model\CaptureTransaction;
+use Kitano\PaymentBundle\Entity\Transaction;
+use Kitano\PaymentBundle\Entity\AuthorizationTransaction;
+use Kitano\PaymentBundle\Entity\CaptureTransaction;
 use Kitano\PaymentBundle\KitanoPaymentEvents;
-use Kitano\PaymentBundle\Event\PaymentNotificationEvent;
+use Kitano\PaymentBundle\Event\PaymentEvent;
 use Kitano\PaymentBundle\Event\PaymentCaptureEvent;
 use Kitano\PaymentBundle\Repository\TransactionRepositoryInterface;
 use Kitano\PaymentBundle\PaymentSystem\HandlePaymentResponse;
 
+use Symfony\Component\HttpKernel\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -36,9 +37,9 @@ class FakePaymentSystem implements CreditCardInterface
     /* @var string */
     protected $notificationUrl = null;
     /* @var string */
-    protected $externalBackToShop = null;
+    protected $externalBackToShopUrl = null;
     /* @var string */
-    protected $internalBackToShop = null;
+    protected $internalBackToShopUrl = null;
 
 
     public function __construct(
@@ -46,21 +47,23 @@ class FakePaymentSystem implements CreditCardInterface
         EventDispatcherInterface $dispatcher,
         EngineInterface $templating,
         RouterInterface $router,
+        LoggerInterface $logger,
         $notificationUrl,
-        $internalBackToShop,
-        $externalBackToShop
+        $internalBackToShopUrl,
+        $externalBackToShopUrl
     )
     {
         $this->transactionRepository = $transactionRepository;
         $this->dispatcher = $dispatcher;
         $this->templating = $templating;
         $this->router = $router;
+        $this->logger = $logger;
         if (!$notificationUrl) {
             $notificationUrl = $router->generate("kitano_payment_payment_notification");
         }
         $this->notificationUrl = $notificationUrl;
-        $this->internalBackToShop = $internalBackToShop;
-        $this->externalBackToShop = $externalBackToShop;
+        $this->internalBackToShopUrl = $internalBackToShopUrl;
+        $this->externalBackToShopUrl = $externalBackToShopUrl;
     }
 
     public function authorizeAndCapture(Transaction $transaction)
@@ -79,8 +82,8 @@ class FakePaymentSystem implements CreditCardInterface
             'transactionId' => $transaction->getId(),
             'amount'  => $this->formatAmount($transaction->getAmount(), $transaction->getCurrency()),
             'notificationUrl' => $this->notificationUrl,
-            'internalBackToShop' => $this->internalBackToShop,
-            'externalBackToShop' => $this->externalBackToShop
+            'internalBackToShop' => $this->internalBackToShopUrl,
+            'externalBackToShop' => $this->externalBackToShopUrl
         ));
     }
 
@@ -113,8 +116,9 @@ class FakePaymentSystem implements CreditCardInterface
         $transaction->setExtraData($requestData->all());
         $this->transactionRepository->save($transaction);
 
-        $event = new PaymentNotificationEvent($transaction);
-        $this->dispatcher->dispatch(KitanoPaymentEvents::PAYMENT_NOTIFICATION, $event);
+        $event = new PaymentEvent($transaction);
+        $this->logger->debug("event KitanoPaymentEvents::AFTER_PAYMENT_NOTIFICATION");
+        $this->dispatcher->dispatch(KitanoPaymentEvents::AFTER_PAYMENT_NOTIFICATION, $event);
 
         $response = new Response("OK");
         return new HandlePaymentResponse($transaction, $response);
@@ -125,7 +129,7 @@ class FakePaymentSystem implements CreditCardInterface
      */
     public function handleBackToShop(Request $request)
     {
-        $response = new RedirectResponse($this->externalBackToShop, "302");
+        $response = new RedirectResponse($this->externalBackToShopUrl.'?transactionId='.$request->get('transactionId', null), "302");
         return new HandlePaymentResponse(null, $response);
     }
 
@@ -186,7 +190,8 @@ class FakePaymentSystem implements CreditCardInterface
         $this->transactionRepository->save($transaction);
 
         $event = new PaymentCaptureEvent($transaction);
-        $this->dispatcher->dispatch(KitanoPaymentEvents::PAYMENT_CAPTURE, $event);
+        $this->logger->debug("event KitanoPaymentEvents::AFTER_CAPTURE");
+        $this->dispatcher->dispatch(KitanoPaymentEvents::AFTER_CAPTURE, $event);
     }
 
     /**
