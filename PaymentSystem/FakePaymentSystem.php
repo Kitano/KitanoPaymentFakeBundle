@@ -92,10 +92,9 @@ class FakePaymentSystem implements CreditCardInterface
      */
     public function handlePaymentNotification(Request $request)
     {
-        $requestData = $request->request;
-        $transaction = $this->transactionRepository->find($requestData->get('transactionId', null));
+        $transaction = $this->transactionRepository->find($request->get('transactionId', null));
 
-        switch((int) $requestData->get('code', 999)) {
+        switch((int) $request->get('code', 999)) {
             case 1:
                 $transaction->setState(AuthorizationTransaction::STATE_APPROVED);
                 break;
@@ -113,7 +112,7 @@ class FakePaymentSystem implements CreditCardInterface
         }
 
         $transaction->setSuccess(true);
-        $transaction->setExtraData($requestData->all());
+        $transaction->setExtraData(array_merge($transaction->getExtraData(), $request->query->all(), $request->request->all()));
         $this->transactionRepository->save($transaction);
 
         $event = new PaymentEvent($transaction);
