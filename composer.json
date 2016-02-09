@@ -18,7 +18,7 @@
         }
     ],
     "require": {
-        "kitano/payment-bundle": "master-dev"
+        "kitano/payment-bundle": "*"
     },
     "autoload": {
         "psr-0": { "Kitano\\PaymentFakeBundle": "" }
